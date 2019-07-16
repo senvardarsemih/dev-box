@@ -15,7 +15,7 @@ services:
     environment:
       ES_JAVA_OPTS: "-Xmx256m -Xms256m"
     networks:
-      - elk
+      - devbox
 
   logstash:
     build:
@@ -30,7 +30,7 @@ services:
     environment:
       LS_JAVA_OPTS: "-Xmx256m -Xms256m"
     networks:
-      - elk
+      - devbox
     depends_on:
       - elasticsearch
 
@@ -44,7 +44,7 @@ services:
     ports:
       - "5601:5601"
     networks:
-      - elk
+      - devbox
     depends_on:
       - elasticsearch
 
@@ -53,28 +53,22 @@ services:
     ports:
       - "6379:6379"
     networks:      
-      - elk
-  
-    # Container to monitor services running inside other containers
-  metricbeat:
-    build:
-      context: metricbeat/
-      args:
-        ELK_VERSION: $ELK_VERSION
-    restart: unless-stopped
-    container_name: metricbeat-metricbeat-services
-    command: -e
+      - devbox
+
+  rabbitmq:
+    image: "rabbitmq:3-management"    
     environment:
-      - "WAIT_FOR_HOSTS=elasticsearch:9200 kibana:5601"
-      - "HOST_ELASTICSEARCH=elasticsearch:9200"
-      - "HOST_KIBANA=kibana:5601"
-    depends_on:
-      - elasticsearch
-      - logstash
-      - kibana
-    networks:
-      - elk
+      RABBITMQ_ERLANG_COOKIE: "SWQOKODSQALRPCLNMEQG"
+      RABBITMQ_DEFAULT_USER: "rabbitmq"
+      RABBITMQ_DEFAULT_PASS: "rabbitmq"
+      RABBITMQ_DEFAULT_VHOST: "/"
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    networks:      
+      - devbox
 
 networks:
-  elk:
+  devbox:
     driver: bridge
+
